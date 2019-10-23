@@ -8,6 +8,6 @@ dependencies{
 
 	compile group: 'commons-cli', name: 'commons-cli', version: '1.2'
 	compile group: 'junit', name: 'junit', version: '4.12'
-        compile group: 'com.github.jsqlparser', name: 'jsqlparser', version: '1.1'
+        compile group: 'com.github.jsqlparser', name: 'jsqlparser', version: '1.2'
 
 }
