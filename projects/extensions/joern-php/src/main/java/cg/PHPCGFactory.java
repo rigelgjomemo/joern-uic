@@ -240,6 +240,35 @@ public class PHPCGFactory {
 							ambiguousNotMapped++;
 					}
 				}
+				//Rigel: to be compatible with early versions of PHP,
+                // whenever a function definitions has the same name as the enclosing
+                // class, joern adds it to the constructorDefs. However, when
+                // that method is called as a normal method, joern misses the
+                // call edge. This else if branch should fix  this
+				/*else if( constructorDefs.containsKey(methodKey)){
+				    if( constructorDefs.get(methodKey).size() == 1) {
+                        addCallEdge(cg, methodCall, constructorDefs.get(methodKey).get(0));
+                        successfullyMapped++;
+                    }
+				    else { // there is more than one matching function definition
+                        // we can still map $this->foo(), though, because we know what $this is
+                        if( methodCall.getTargetObject() instanceof Variable
+                                && ((Variable)methodCall.getTargetObject()).getNameExpression() instanceof StringExpression
+                                && ((StringExpression)((Variable)methodCall.getTargetObject()).getNameExpression()).getEscapedCodeStr().equals("this")) {
+
+                            String enclosingClass = methodCall.getEnclosingClass();
+                            for( Method methodDef : constructorDefs.get(methodKey)) {
+                                if( enclosingClass.equals(methodDef.getEnclosingClass())) {
+                                    addCallEdge( cg, methodCall, methodDef);
+                                    successfullyMapped++;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                            ambiguousNotMapped++;
+                    }
+                }*/
 			}
 			else
 				System.err.println("Statically unknown non-static method call at node id " + methodCall.getNodeId() + "!");
@@ -285,8 +314,13 @@ public class PHPCGFactory {
 		boolean ret = false;
 		
 		// check whether we know the called function
-		if( defSet.containsKey(functionKey))		
-			ret = addCallEdge( cg, functionCall, defSet.get(functionKey));
+		if( defSet.containsKey(functionKey)) {
+            ret = addCallEdge(cg, functionCall, defSet.get(functionKey));
+            System.out.println("Success: "+functionKey);
+        }
+		else
+            System.out.println("Fail: "+functionKey);
+
 		
 		return ret;
 	}
@@ -374,7 +408,7 @@ public class PHPCGFactory {
 		// also note that there are two possible constructor names: __construct() (recommended) and ClassName() (legacy)
 		else if( functionDef instanceof Method
 				&& (functionDef.getName().equals("__construct")
-						|| functionDef.getName().equals(((Method)functionDef).getEnclosingClass()))) {
+						/*|| functionDef.getName().equals(((Method)functionDef).getEnclosingClass())*/)) { //Rigel: the legacy case confuses the Call Graph Construction. Commented it out
 			// use A\B\C as key for the unique constructor of a class A\B\C
 			String constructorKey = ((Method)functionDef).getEnclosingClass();
 			if( !functionDef.getEnclosingNamespace().isEmpty())
